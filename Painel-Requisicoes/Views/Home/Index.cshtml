@@ -1,0 +1,181 @@
+﻿@using System.Text.Json;
+@{
+    ViewData["Title"] = "Home Page";
+}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+
+<style>
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        border-color: #11263c #11263c #fff
+    }
+
+    .nav-tabs {
+        border-bottom: 1px solid #7e98b3;
+    }
+
+    .nav-tabs .nav-link:hover {
+        background: lightgray;
+    }
+
+    thead tr{
+        background: black;
+        color:wheat;
+    }
+    tbody tr:hover{
+        background: lightgray !important;
+    }
+
+</style>
+
+@{
+    var listaTabs = new List<string> { "BACKLOG", "SPRING", "HOMOLOGAÇÃO", "PRODUÇÃO" };
+    //var listaTabs = new List<string> { "BACKLOG"};
+    var listaSistemas = new List<string> { "CIRCUITOS", "DISPONIBLIDADE", "TELESSERVICOS", "TELEFONIA", "GESTÃO 8000", "SIADA", "SITEL" };
+    var listaDevs = new List<string> { "ALAN", "HIAGO", "MICHELE", "IVAN", "ELIAS" };
+    var listaTipo = new List<string> { "EVOLUTIVA", "DADOS", "CORRETIVA" };
+    var listaPrioridade = new List<string> { "IMPORTANTE", "BAIXA", "NORMAL" };
+    var listaClientes = new List<string> { "ADRIANO", "ERASMO", "VICTOR", "JESIMIEL" };
+}
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    @foreach (var item in listaTabs)
+    {
+        var ativo = item.Equals("BACKLOG") ? "active" : "";
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @ativo" id="@item-tab" data-bs-toggle="tab" data-bs-target="#@item-tab-pane" type="button" role="tab" aria-controls="@item-tab-pane" aria-selected="true">@item</button>
+        </li>
+
+    }
+
+</ul>
+
+
+<div class="tab-content" id="myTabContent">
+
+    @foreach (var item in listaTabs)
+
+    {
+        var ativo = item.Equals("BACKLOG") ? "show active" : "";
+
+        <div class="tab-pane fade @ativo px-0 py-5" id="@item-tab-pane" role="tabpanel" aria-labelledby="@item-tab" tabindex="0" style="overflow-x: auto;">
+
+            <table id="@item-table">
+                <thead>
+                    <tr>
+                        <th>SOLUÇÃO</th>
+                        <th>TIPO</th>
+                        <th>PRIORIDADE</th>
+                        <th>ORDER</th>
+                        <th>DATA</th>
+                        <th>INICIO</th>
+                        <th>DEVS</th>
+                        <th>REQ</th>
+                        <th>WO</th>
+                        <th>CLIENTE</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < 50; i++)
+                    {
+                        <tr>
+
+                            <td>@listaSistemas[new Random().Next(0, listaSistemas.Count)]</td>
+                            <td>@listaTipo[new Random().Next(0, listaTipo.Count)]</td>
+                            <td>@listaPrioridade[new Random().Next(0, listaPrioridade.Count)]</td>
+                            <td>@(i+1)</td>
+                            @{
+                                var data = DateTime.Now.AddDays(new Random().Next(-10, 10));
+                                            <td>@data.ToShortDateString()</td>
+                                data = data.AddDays(new Random().Next(1, 5));
+                                            <td>@data.ToShortDateString()</td>
+                            }
+
+                            <td>@listaDevs[new Random().Next(0, listaDevs.Count)]</td>
+
+                            @{
+                                var REQ = new Random().Next(1, 99999).ToString().PadLeft(10, '0');
+                                            <td>@("REQ" + REQ)</td>
+                                            <td>@("WO" + REQ)</td>
+                            }
+
+                            <td>@listaClientes[new Random().Next(0, listaClientes.Count)]</td>
+                        </tr>
+                    }
+
+
+                </tbody>
+            </table>
+
+
+        </div>
+    }
+
+</div>
+
+@section Scripts{
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script>
+
+        ;
+
+        $(document).ready(function() {
+
+        @{
+            var json = JsonSerializer.Serialize(listaTabs);
+        }
+
+           var listaTabsScript = @Html.Raw(json);
+            listaTabsScript.forEach(x => {
+                MontaDataTable('#' + x + '-table')
+            });
+
+        });
+
+
+        function MontaDataTable(idTable) {
+
+            let table = $(idTable).DataTable({
+                'dom': "t<'row pt-3'<'col'i><'col-5'p><'col'l>>"
+            });
+
+
+
+            //Create individual column filters
+            $(idTable + ' thead th').each(function() {
+                var title = $(this).text();
+
+                $(this).html(title + '<select><option value="">- TODOS</option></select>');
+            });
+
+            // Populate select dropdowns with distinct values
+            table.columns().every(function() {
+                var column = this;
+                var select = $('select', this.header());
+
+                column.data().unique().sort().each(function(d) {
+                    select.append('<option value="' + d + '">' + d + '</option>');
+                });
+            });
+
+            // Apply the filters
+            table.columns().every(function() {
+                var column = this;
+                var select = $('select', this.header());
+
+                select.on('change', function() {
+                    var val = $.fn.dataTable.util.escapeRegex($(this).val());
+
+                    column.search(val ? '^' + val + '$' : '', true, false).draw();
+                });
+            });
+        }
+
+    </script>
+}
+
+
+
+

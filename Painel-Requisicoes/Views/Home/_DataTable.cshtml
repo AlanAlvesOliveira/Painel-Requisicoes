@@ -1,0 +1,119 @@
+﻿@{
+    //var listaTabs = new List<string> { "BACKLOG", "SPRING", "HOMOLOGAÇÃO", "PRODUÇÃO", "GRAFICOS" };
+    var listaTabs = new List<string> { "BACKLOG", "SPRING" };
+    var listaSistemas = new List<string> { "CIRCUITOS", "DISPONIBLIDADE", "TELESSERVICOS", "TELEFONIA", "GESTÃO 8000", "SIADA", "SITEL" };
+    var listaDevs = new List<string> { "ALAN", "HIAGO", "MICHELE", "IVAN", "ELIAS" };
+    var listaTipo = new List<string> { "EVOLUTIVA", "DADOS", "CORRETIVA" };
+    var listaPrioridade = new List<string> { "IMPORTANTE", "BAIXA", "NORMAL" };
+    var listaClientes = new List<string> { "ADRIANO", "ERASMO", "VICTOR", "JESIMIEL" };
+}
+
+@foreach (var item in listaTabs)
+
+{
+    var ativo = item.Equals("BACKLOG") ? "show active" : "";
+
+    <div class="tab-pane fade @ativo px-0 py-5" id="@item-tab-pane" role="tabpanel" aria-labelledby="@item-tab" tabindex="0" style="overflow-x: auto;">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>SOLUÇÃO</th>
+                    <th>TIPO</th>
+                    <th>PRIORIDADE</th>
+                    <th>ORDER</th>
+                    <th>DATA</th>
+                    <th>INICIO</th>
+                    <th>DEVS</th>
+                    <th>REQ</th>
+                    <th>WO</th>
+                    <th>CLIENTE</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < 50; i++)
+                {
+                    <tr>
+
+                        <td>@listaSistemas[new Random().Next(0, listaSistemas.Count)]</td>
+                        <td>@listaTipo[new Random().Next(0, listaTipo.Count)]</td>
+                        <td>@listaPrioridade[new Random().Next(0, listaPrioridade.Count)]</td>
+                        <td>@(i+1)</td>
+                        @{
+                            var data = DateTime.Now.AddDays(new Random().Next(-10, 10));
+                            <td>@data.ToShortDateString()</td>
+                            data = data.AddDays(new Random().Next(1, 5));
+                            <td>@data.ToShortDateString()</td>
+                        }
+
+                        <td>@listaDevs[new Random().Next(0, listaDevs.Count)]</td>
+
+                        @{
+                            var REQ = new Random().Next(1, 99999).ToString().PadLeft(10, '0');
+                            <td>@("REQ" + REQ)</td>
+                            <td>@("WO" + REQ)</td>
+                        }
+
+                        <td>@listaClientes[new Random().Next(0, listaClientes.Count)]</td>
+                    </tr>
+                }
+
+
+            </tbody>
+        </table>
+
+
+    </div>
+}
+
+<script>
+
+    $(document).ready(function() {
+        var table = $('table').DataTable({
+                'dom': 'tp',
+                initComplete: function(settings, json) {
+                    $(this).find('thead th').each(function() {
+                        var title = $(this).text();
+                        $(this).html(title + '<select><option value="">TODOS</option></select>');
+                    });
+                }
+            });
+
+        
+
+        $(table).DataTable({
+            'dom': 'tp',
+            initComplete: function(settings, json) {
+                $(this).find('thead th').each(function() {
+                    var title = $(this).text();
+                    $(this).html(title + '<select><option value="">TODOS</option></select>');
+                });
+            }
+        });
+
+
+
+        // Populate select dropdowns with distinct values
+        table.columns().every(function() {
+            var column = this;
+            var select = $('select', this.header());
+
+            column.data().unique().sort().each(function(d) {
+                select.append('<option value="' + d + '">' + d + '</option>');
+            });
+        });
+
+        // Apply the filters
+        table.columns().every(function() {
+            var column = this;
+            var select = $('select', this.header());
+
+            select.on('change', function() {
+                var val = $.fn.dataTable.util.escapeRegex($(this).val());
+
+                column.search(val ? '^' + val + '$' : '', true, false).draw();
+            });
+        });
+    });
+</script>
